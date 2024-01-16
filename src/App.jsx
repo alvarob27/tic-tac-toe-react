@@ -9,22 +9,37 @@ import { WinnerModal } from "./components/WinnerModal";
 import { checkEndGame } from "./logic/board";
 import "./App.css";
 
-
 function App() {
-  const [board, setBoard] = useState(Array(9).fill(null));
+  const [board, setBoard] = useState(() => {
+    // Recuperamos el tablero del localStorage
+    const boardFromStorage = window.localStorage.getItem("board");
 
-  const [turn, setTurn] = useState(TURNS.X);
+    // Si hay tablero en el localStorage, lo usamos
+    if (boardFromStorage) {
+      return JSON.parse(boardFromStorage);
+    } else {
+      // Si no hay tablero en el localStorage, lo creamos
+      return Array(9).fill(null);
+    }
+  });
+
+  const [turn, setTurn] = useState( () => {
+    const turnFromStorage = window.localStorage.getItem("turn");
+    return turnFromStorage ?? TURNS.X;
+  });
 
   // Null es que no hay ganador, false es que hay empate
   const [winner, setWinner] = useState(null);
-
-  
 
   const resetGame = () => {
     setBoard(Array(9).fill(null));
     setTurn(TURNS.X);
     setWinner(null);
-  }
+
+    // Limpiar el localStorage
+    window.localStorage.removeItem("board");
+    window.localStorage.removeItem("turn");
+  };
 
   const updateBoard = (index) => {
     // No actualizar si ya hay un valor
@@ -41,6 +56,10 @@ function App() {
     // Actualizar el turno
     const newTurn = turn === TURNS.X ? TURNS.O : TURNS.X;
     setTurn(newTurn);
+
+    // Guardar aqui la partida
+    window.localStorage.setItem("board", JSON.stringify(newBoard));
+    window.localStorage.setItem("turn", newTurn);
 
     // Revisar si hay ganador
     const newWinner = checkWinnerFrom(newBoard);
